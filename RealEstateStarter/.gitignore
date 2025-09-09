@@ -1,0 +1,25 @@
+# ビルド生成物
+build/
+DerivedData/
+
+# ユーザ固有設定（除外推奨）
+*.xcworkspace/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+xcuserdata/
+
+# 中間／キャッシュ
+.DS_Store
+
+# CocoaPods を使う場合（一般的に Pods/ はコミットしない）
+Pods/
+
+# SwiftPM のローカルデータ（必要に応じて）
+.swiftpm/
+
+# もし Xcode が生成するログや検証ファイル
+*.moved-aside
+*.xccheckout
+
+# 除外したいファイル
+xcschememanagement.plist
+UserInterfaceState.xcuserstate
