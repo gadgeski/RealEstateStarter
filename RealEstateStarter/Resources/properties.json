@@ -1,0 +1,63 @@
+[
+  {
+    "title": "グリーンヒルズ代々木 203",
+    "rent": 145000,
+    "layout": "1LDK / 35.2㎡",
+    "area": "東京都渋谷区代々木",
+    "wardOrCity": "渋谷区",
+    "nearestStation": "代々木駅",
+    "walkMinutes": 6,
+    "imageSystemName": "building.2.fill",
+    "latitude": 35.6841,
+    "longitude": 139.702
+  },
+  {
+    "title": "サンライズ中目黒 402",
+    "rent": 168000,
+    "layout": "1LDK / 40.1㎡",
+    "area": "東京都目黒区上目黒",
+    "wardOrCity": "目黒区",
+    "nearestStation": "中目黒駅",
+    "walkMinutes": 8,
+    "imageSystemName": "house.fill",
+    "latitude": 35.644,
+    "longitude": 139.698
+  },
+  {
+    "title": "パークサイド神楽坂 101",
+    "rent": 122000,
+    "layout": "1DK / 28.5㎡",
+    "area": "東京都新宿区矢来町",
+    "wardOrCity": "新宿区",
+    "nearestStation": "神楽坂駅",
+    "walkMinutes": 3,
+    "imageSystemName": "door.left.hand.open",
+    "latitude": 35.7043,
+    "longitude": 139.7356
+  },
+  {
+    "title": "豊洲ベイフロント 2610",
+    "rent": 238000,
+    "layout": "2LDK / 60.0㎡",
+    "area": "東京都江東区豊洲",
+    "wardOrCity": "江東区",
+    "nearestStation": "豊洲駅",
+    "walkMinutes": 5,
+    "imageSystemName": "building.2.fill",
+    "latitude": 35.6549,
+    "longitude": 139.7976
+  },
+  {
+    "title": "川崎リバータワー 1904",
+    "rent": 175000,
+    "layout": "2LDK / 48.0㎡",
+    "area": "神奈川県川崎市幸区",
+    "wardOrCity": "川崎市",
+    "nearestStation": "川崎駅",
+    "walkMinutes": 8,
+    "imageSystemName": "building.2.fill",
+    "latitude": 35.5317,
+    "longitude": 139.6969
+  }
+]
+
