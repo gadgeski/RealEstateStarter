@@ -25,3 +25,11 @@ enum PropertyBundleLoader {
         return try dec.decode([Property].self, from: data)
     }
 }
+
+// Utilities/PropertyBundleLoader.swift の末尾などに追記（例）
+extension PropertyBundleLoader {
+    static func loadProperties() throws -> [Property] {
+        try load(name: "properties") // or "properties.json"
+    }
+}
+
