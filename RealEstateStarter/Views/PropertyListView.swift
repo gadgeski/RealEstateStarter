@@ -8,7 +8,11 @@
 import SwiftUI
 
 struct PropertyListView: View {
-    let properties: [Property]
+    // ============================
+    // [変更] 旧: `let properties: [Property]`
+    // ViewModel を注入し、そこから一覧を取得します
+    // ============================
+    @StateObject var viewModel: PropertyListViewModel  // [変更]
 
     @State private var filter = PropertyFilter()
     @State private var isFilterPresented = false
@@ -16,6 +20,13 @@ struct PropertyListView: View {
 
     // ★ 追加: 最終リフレッシュ時刻（将来のAPI更新日時にも利用）
     @State private var lastRefreshed: Date? = nil
+
+    // ============================
+    // [追加] 既存コードの互換用ブリッジ
+    // 以降の計算プロパティが `properties` を参照しているため、
+    // viewModel.properties を噛ませるだけで既存ロジックを温存
+    // ============================
+    private var properties: [Property] { viewModel.properties } // [追加]
 
     // 家賃の最小・最大（フィルタシートの範囲用）
     private var rentBounds: ClosedRange<Int> {
@@ -65,24 +76,18 @@ struct PropertyListView: View {
     // フィルタ＆検索適用済みの一覧
     private var filtered: [Property] {
         let q = filter.query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-
         let base = properties.filter { p in
             // テキスト検索（物件名・エリア・駅名）
             let haystack = "\(p.title) \(p.area) \(p.nearestStation)".lowercased()
             let matchesQuery = q.isEmpty || haystack.contains(q)
-
             // 家賃上限
             let matchesRent = filter.maxRent.map { p.rent <= $0 } ?? true
-
             // 徒歩分数上限
             let matchesWalk = filter.maxWalkMinutes.map { p.walkMinutes <= $0 } ?? true
-
             // エリア一致（未選択=全許可）
             let matchesArea = filter.selectedAreas.isEmpty || filter.selectedAreas.contains(p.wardOrCity)
-
             return matchesQuery && matchesRent && matchesWalk && matchesArea
         }
-
         // 並び替え
         return base.sorted { a, b in
             switch filter.sort {
@@ -105,7 +110,32 @@ struct PropertyListView: View {
                     .padding(.top, 4)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
-                if filtered.isEmpty {
+                // ============================
+                // [追加] ローディング／エラー／通常 の三分岐
+                // viewModel の状態を参照
+                // ============================
+                if viewModel.isLoading && properties.isEmpty {
+                    ProgressView("読み込み中…")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+
+                } else if let message = viewModel.errorMessage, properties.isEmpty {
+                    VStack(spacing: 12) {
+                        Text("データ取得に失敗しました")
+                            .font(.headline)
+                        Text(message)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                        Button("再試行") {
+                            // [追加] ViewModel に再取得を依頼
+                            viewModel.load()
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding()
+
+                } else if filtered.isEmpty {
                     ContentUnavailableView(
                         "該当する物件がありません",
                         systemImage: "magnifyingglass",
@@ -134,7 +164,7 @@ struct PropertyListView: View {
                     .listStyle(.plain)
                     // ★ 追加: プル・トゥ・リフレッシュ
                     .refreshable {
-                        await refresh() // 将来: ここでAPIフェッチに差し替え
+                        await refresh() // 将来: ここでAPIフェッチの完了を待つ構成に変更可
                     }
                 }
             }
@@ -169,30 +199,37 @@ struct PropertyListView: View {
             }
             .presentationDetents([.medium, .large])
         }
-        // ★ 追加: 画面初期表示時に一度だけ“更新時刻”をセット（任意）
+        // ============================
+        // [追加] 画面初期表示時に一度だけロード＆更新時刻をセット
+        // ============================
         .task {
             if lastRefreshed == nil {
-                lastRefreshed = Date()
+                viewModel.load()        // [追加]
+                lastRefreshed = Date()  // [追加]
             }
         }
     }
 
     // MARK: - ★ 追加: リフレッシュ処理（将来API時にも流用）
-
-    /// データを再取得する処理。今はダミー待機→時刻更新のみ。
-    /// 将来は Repository 経由でフェッチし、@State のデータに反映させる想定。
+    /// データを再取得する処理。今は ViewModel に再ロードを依頼し、時刻だけ更新。
     @MainActor
     private func refresh() async {
-        // ダミーのネットワーク遅延
-        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5秒
-
-        // 【将来】ここで: await repository.fetch(query: …) → @State に反映
-        // 現状は外から渡された `properties`（let）なのでデータは変えず、更新時刻のみ更新
-        lastRefreshed = Date()
+        viewModel.load()        // [追加] Repository 経由で再取得（実装は ViewModel 側）
+        lastRefreshed = Date()  // [追加]
     }
 }
 
 #Preview {
-    PropertyListView(properties: MockProperties.sample)
+    // ============================
+    // [追加] プレビュー用の簡易スタブ（Repository → ViewModel → View）
+    // 実アプリの LocalPropertyRepository を使ってもOK
+    // ============================
+    struct PreviewRepo: PropertyRepository {
+        func fetchProperties() async throws -> [Property] {
+            MockProperties.sample
+        }
+    }
+    let vm = PropertyListViewModel(repository: PreviewRepo())
+    return PropertyListView(viewModel: vm)
         .environmentObject(FavoritesStore())
 }
