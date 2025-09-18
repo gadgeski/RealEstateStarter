@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct MainTabView: View {
+    @State private var didLog = false   // 一度だけログに出すためのフラグ
     // 既存：呼び出し元の API を壊さないため、そのまま受け取る
     let properties: [Property]
 
@@ -58,6 +59,17 @@ struct MainTabView: View {
             //
             // MapExploreView() など、もし properties を必要とするなら
             // 同様の手法で “ブリッジ用 ViewModel / Repository” を用意すると安全です。
+                .task {
+                    #if DEBUG
+                    guard !didLog else { return }
+                    didLog = true
+                    // Info.plist（xcconfig置換）から値を確認
+                    let baseURL  = Bundle.main.object(forInfoDictionaryKey: "BASE_URL") as? String ?? "nil"
+                    let useAPI   = Bundle.main.object(forInfoDictionaryKey: "USE_API") as? String ?? "nil"
+                    let fallback = Bundle.main.object(forInfoDictionaryKey: "USE_FALLBACK") as? String ?? "nil"
+                    print("[Config] BASE_URL=\(baseURL) USE_API=\(useAPI) USE_FALLBACK=\(fallback)")
+                    #endif
+                }
         }
     }
 }
