@@ -1,0 +1,22 @@
+//
+//  Shared.xcconfig
+//  RealEstateStarter
+//
+//  Created by Dev Tech on 2025/09/17.
+//
+
+// Configuration settings file format documentation can be found at:
+// https://developer.apple.com/documentation/xcode/adding-a-build-configuration-file-to-your-project
+
+// [追加] すべてのビルド設定で共有する既定値
+BASE_URL = https://your.api.example.com   // [追加] 既定のAPI先（Releaseでも使える値）
+USE_API = YES                              // [追加] APIを使うか（YES/NO）
+USE_FALLBACK = YES                         // [追加] API失敗時にローカルへフォールバックするか
+LOG_LEVEL = WARN                           // [追加] ログレベル（DEBUG/INFO/WARN/ERROR）
+API_TIMEOUT_SECONDS = 15                   // [追加] 任意：タイムアウト秒数（必要なら活用）
+
+// Xcode 既定のコンパイル条件を維持（例：DEBUGはDebugのみ）
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited)
+
+
+
