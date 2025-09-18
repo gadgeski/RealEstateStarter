@@ -17,6 +17,7 @@ struct RealEstateStarterApp: App {
 
     var body: some Scene {
         WindowGroup {
+            
             // ============================
             // BASE_URL を Info.plist から取得（xcconfig で外出し推奨）
             // キーが無い/不正でも落ちないようフォールバックを用意
