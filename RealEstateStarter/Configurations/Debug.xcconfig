@@ -1,0 +1,18 @@
+//
+//  Debug.xcconfig
+//  RealEstateStarter
+//
+//  Created by Dev Tech on 2025/09/17.
+//
+
+// Configuration settings file format documentation can be found at:
+// https://developer.apple.com/documentation/xcode/adding-a-build-configuration-file-to-your-project
+
+#include "Shared.xcconfig"                 // [追加] 共有の取り込み
+
+// [追加] Debug専用の上書き
+BASE_URL = https://dev.api.example.com     // 例：開発環境
+USE_API = YES
+USE_FALLBACK = YES
+LOG_LEVEL = DEBUG
+
