@@ -1,0 +1,17 @@
+//
+//  Release.xcconfig
+//  RealEstateStarter
+//
+//  Created by Dev Tech on 2025/09/17.
+//
+
+// Configuration settings file format documentation can be found at:
+// https://developer.apple.com/documentation/xcode/adding-a-build-configuration-file-to-your-project
+
+#include "Shared.xcconfig"                 // [追加]
+
+// [追加] Release専用の上書き
+BASE_URL = https://api.example.com         // 本番環境
+USE_API = YES
+USE_FALLBACK = YES
+LOG_LEVEL = WARN
