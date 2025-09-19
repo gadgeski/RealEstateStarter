@@ -6,7 +6,18 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXContainerItemProxy section */
+		DB41248D2E7BF87700761290 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DB8457662E6FDBD300EB5659 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DB84576D2E6FDBD300EB5659;
+			remoteInfo = RealEstateStarter;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		DB4124892E7BF87700761290 /* RealEstateStarterTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RealEstateStarterTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DB84576E2E6FDBD300EB5659 /* RealEstateStarter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RealEstateStarter.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -26,6 +37,16 @@
 			path = doc;
 			sourceTree = "<group>";
 		};
+		DB4123F62E7BED5F00761290 /* Tests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		DB41248A2E7BF87700761290 /* RealEstateStarterTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = RealEstateStarterTests;
+			sourceTree = "<group>";
+		};
 		DB8457702E6FDBD300EB5659 /* RealEstateStarter */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -37,6 +58,13 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		DB4124862E7BF87700761290 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		DB84576B2E6FDBD300EB5659 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -50,8 +78,10 @@
 		DB8457652E6FDBD300EB5659 = {
 			isa = PBXGroup;
 			children = (
+				DB4123F62E7BED5F00761290 /* Tests */,
 				DB4123ED2E7AD46300761290 /* doc */,
 				DB8457702E6FDBD300EB5659 /* RealEstateStarter */,
+				DB41248A2E7BF87700761290 /* RealEstateStarterTests */,
 				DB84576F2E6FDBD300EB5659 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -60,6 +90,7 @@
 			isa = PBXGroup;
 			children = (
 				DB84576E2E6FDBD300EB5659 /* RealEstateStarter.app */,
+				DB4124892E7BF87700761290 /* RealEstateStarterTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -67,6 +98,29 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		DB4124882E7BF87700761290 /* RealEstateStarterTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DB41248F2E7BF87700761290 /* Build configuration list for PBXNativeTarget "RealEstateStarterTests" */;
+			buildPhases = (
+				DB4124852E7BF87700761290 /* Sources */,
+				DB4124862E7BF87700761290 /* Frameworks */,
+				DB4124872E7BF87700761290 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				DB41248E2E7BF87700761290 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				DB41248A2E7BF87700761290 /* RealEstateStarterTests */,
+			);
+			name = RealEstateStarterTests;
+			packageProductDependencies = (
+			);
+			productName = RealEstateStarterTests;
+			productReference = DB4124892E7BF87700761290 /* RealEstateStarterTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		DB84576D2E6FDBD300EB5659 /* RealEstateStarter */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = DB84577A2E6FDBD400EB5659 /* Build configuration list for PBXNativeTarget "RealEstateStarter" */;
@@ -81,6 +135,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				DB4123ED2E7AD46300761290 /* doc */,
+				DB4123F62E7BED5F00761290 /* Tests */,
 				DB8457702E6FDBD300EB5659 /* RealEstateStarter */,
 			);
 			name = RealEstateStarter;
@@ -100,6 +155,10 @@
 				LastSwiftUpdateCheck = 1640;
 				LastUpgradeCheck = 1640;
 				TargetAttributes = {
+					DB4124882E7BF87700761290 = {
+						CreatedOnToolsVersion = 16.4;
+						TestTargetID = DB84576D2E6FDBD300EB5659;
+					};
 					DB84576D2E6FDBD300EB5659 = {
 						CreatedOnToolsVersion = 16.4;
 					};
@@ -120,11 +179,19 @@
 			projectRoot = "";
 			targets = (
 				DB84576D2E6FDBD300EB5659 /* RealEstateStarter */,
+				DB4124882E7BF87700761290 /* RealEstateStarterTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		DB4124872E7BF87700761290 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		DB84576C2E6FDBD300EB5659 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -135,6 +202,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		DB4124852E7BF87700761290 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		DB84576A2E6FDBD300EB5659 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -144,7 +218,56 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		DB41248E2E7BF87700761290 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DB84576D2E6FDBD300EB5659 /* RealEstateStarter */;
+			targetProxy = DB41248D2E7BF87700761290 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		DB4124902E7BF87700761290 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = L6SXUP9G68;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.gmail.d3rvi2lg1ont69d.RealEstateStarterTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/RealEstateStarter.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/RealEstateStarter";
+			};
+			name = Debug;
+		};
+		DB4124912E7BF87700761290 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = L6SXUP9G68;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.gmail.d3rvi2lg1ont69d.RealEstateStarterTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/RealEstateStarter.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/RealEstateStarter";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 		DB8457782E6FDBD400EB5659 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReferenceAnchor = DB8457702E6FDBD300EB5659 /* RealEstateStarter */;
@@ -354,6 +477,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		DB41248F2E7BF87700761290 /* Build configuration list for PBXNativeTarget "RealEstateStarterTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DB4124902E7BF87700761290 /* Debug */,
+				DB4124912E7BF87700761290 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		DB8457692E6FDBD300EB5659 /* Build configuration list for PBXProject "RealEstateStarter" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
