@@ -28,10 +28,11 @@ struct FavoritesListView: View {
     }
 
     // お気に入りに入っている Property（未ソート）
+    // 置き換え
     private var favs: [Property] {
-        properties.filter { favorites.contains($0.id) }
+        properties.filter { favorites.isFavorite(id: $0.id) }
+        // または: properties.filter { favorites.isFavorite($0) }
     }
-
     // ★ 追加: 並び替え適用済み
     private var favsSorted: [Property] {
         favs.sorted { a, b in
