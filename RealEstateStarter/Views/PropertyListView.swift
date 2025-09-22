@@ -8,25 +8,32 @@
 import SwiftUI
 
 struct PropertyListView: View {
-    // ============================
-    // [変更] 旧: let properties: [Property]
-    // ViewModel を注入（Step5で導入済み）
-    // ============================
     @StateObject var viewModel: PropertyListViewModel
 
     @State private var filter = PropertyFilter()
     @State private var isFilterPresented = false
     @EnvironmentObject private var favorites: FavoritesStore
 
-    // ============================
-    // [削除] 旧: lastRefreshed（@State）
-    // 画面側の時刻管理を廃止し、ViewModel の lastUpdated を使用
-    // ============================
+    // [追加] 並び替え表示テキスト
+    private var sortLabel: String {
+        switch filter.sort {
+        case .rentAsc:  return "家賃↑"
+        case .rentDesc: return "家賃↓"
+        case .walkAsc:  return "徒歩↑"
+        case .walkDesc: return "徒歩↓"
+        }
+    }
 
-    // [追加] 既存コード互換：viewModel.properties を参照するブリッジ
+    // [変更] 件数＋更新時刻（相対表現）
+    private var updatedText: String? {
+        guard let t = viewModel.lastUpdated else { return nil }
+        let f = RelativeDateTimeFormatter(); f.locale = .init(identifier: "ja_JP")
+        return f.localizedString(for: t, relativeTo: .now) // 例) “5分前”
+    }
+
+    // 既存：VMの配列を参照
     private var properties: [Property] { viewModel.properties }
 
-    // 家賃の最小・最大（フィルタシートの範囲用）
     private var rentBounds: ClosedRange<Int> {
         let rents = properties.map(\.rent)
         guard let min = rents.min(), let max = rents.max(), min <= max else {
@@ -35,58 +42,21 @@ struct PropertyListView: View {
         return min...max
     }
 
-    // エリア候補（ユニーク & ソート）
     private var availableAreas: [String] {
         Array(Set(properties.map(\.wardOrCity))).sorted()
     }
 
-    // ============================
-    // [変更] 更新時刻の表示テキストを ViewModel の lastUpdated から生成
-    // ============================
-    private var updatedText: String? {
-        guard let t = viewModel.lastUpdated else { return nil }
-        let df = DateFormatter()
-        df.locale = Locale(identifier: "ja_JP_POSIX")
-        df.dateFormat = "HH:mm"
-        return "更新: \(df.string(from: t))"
-    }
-
-    // フィルタ要約テキスト（“何件・どの条件か”）
-    private var activeFilterSummary: String {
-        var parts: [String] = []
-        if !filter.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            parts.append("検索: \(filter.query)")
-        }
-        if let m = filter.maxRent {
-            parts.append("家賃 ≤ \(m.formatted(.currency(code: "JPY")))")
-        }
-        if let w = filter.maxWalkMinutes {
-            parts.append("徒歩 ≤ \(w)分")
-        }
-        if !filter.selectedAreas.isEmpty {
-            parts.append(filter.selectedAreas.sorted().joined(separator: "・"))
-        }
-        parts.append("\(filtered.count)件")
-        if let txt = updatedText { parts.append(txt) } // [変更] lastUpdated を表示
-        return parts.joined(separator: " / ")
-    }
-
-    // フィルタ＆検索適用済みの一覧
+    // フィルタ適用後
     private var filtered: [Property] {
         let q = filter.query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         let base = properties.filter { p in
-            // テキスト検索（物件名・エリア・駅名）
             let haystack = "\(p.title) \(p.area) \(p.nearestStation)".lowercased()
             let matchesQuery = q.isEmpty || haystack.contains(q)
-            // 家賃上限
             let matchesRent = filter.maxRent.map { p.rent <= $0 } ?? true
-            // 徒歩分数上限
             let matchesWalk = filter.maxWalkMinutes.map { p.walkMinutes <= $0 } ?? true
-            // エリア一致（未選択=全許可）
             let matchesArea = filter.selectedAreas.isEmpty || filter.selectedAreas.contains(p.wardOrCity)
             return matchesQuery && matchesRent && matchesWalk && matchesArea
         }
-        // 並び替え
         return base.sorted { a, b in
             switch filter.sort {
             case .rentAsc:  return a.rent < b.rent
@@ -100,49 +70,113 @@ struct PropertyListView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 6) {
-                // ここが「List の前」＝常時表示の要約バー
-                Text(activeFilterSummary)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal)
-                    .padding(.top, 4)
-                    .frame(maxWidth: .infinity, alignment: .leading)
 
-                // ローディング／エラー／通常 の三分岐
+                // ============================
+                // [追加] 要約バーを“チップ化”して視認性UP
+                //  - 左: 件数チップ
+                //  - 右: 並び替えチップ（タップでメニュー）
+                //  - 更新時刻（相対）も末尾に
+                // ============================
+                HStack {
+                    // 件数チップ
+                    Chip(text: "\(filtered.count)件", systemImage: "list.number")
+                        .accessibilityLabel("該当件数 \(filtered.count) 件")
+
+                    Spacer(minLength: 8)
+
+                    // 並び替えメニュー（チップ）
+                    Menu {
+                        Button("家賃（安い順）", systemImage: "arrow.down") { filter.sort = .rentAsc }
+                        Button("家賃（高い順）", systemImage: "arrow.up")   { filter.sort = .rentDesc }
+                        Divider()
+                        Button("徒歩（短い順）", systemImage: "arrow.down") { filter.sort = .walkAsc }
+                        Button("徒歩（長い順）", systemImage: "arrow.up")   { filter.sort = .walkDesc }
+                    } label: {
+                        Chip(text: "並び: \(sortLabel)", systemImage: "arrow.up.arrow.down") // [追加]
+                    }
+                    .accessibilityLabel("並び替え")
+                }
+                .padding(.horizontal)
+                .padding(.top, 4)
+
+                // 更新時刻（相対）
+                if let u = updatedText {
+                    Text("最終更新 \(u)")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal)
+                }
+
+                // ===== リスト表示/エラー/空表示 =====
                 if viewModel.isLoading && properties.isEmpty {
                     ProgressView("読み込み中…")
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 
                 } else if let message = viewModel.errorMessage, properties.isEmpty {
+                    // ============================
+                    // [変更] エラー時の“次アクション”を強化
+                    //  - 再試行（自動フォールバック込み）
+                    //  - フィルタをリセット（ネット復旧後の0件/条件過多に備えて）
+                    // ============================
                     VStack(spacing: 12) {
-                        Text("データ取得に失敗しました").font(.headline)
-                        Text(message)
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                        Button("再試行") {
-                            // [変更] 非同期版 reload を呼び出し（Button内なので Task でラップ）
-                            Task { await viewModel.reload() }
+                        ContentUnavailableView(
+                            "データ取得に失敗しました",
+                            systemImage: "exclamationmark.triangle",
+                            description: Text(message)
+                        )
+                        HStack(spacing: 12) {
+                            Button {
+                                Task { await viewModel.reload() }    // 再試行
+                            } label: {
+                                Label("再試行", systemImage: "arrow.clockwise")
+                            }
+                            .buttonStyle(.borderedProminent)
+
+                            Button(role: .destructive) {
+                                filter = PropertyFilter()             // [追加] 条件リセット
+                            } label: {
+                                Label("条件をリセット", systemImage: "xmark.circle")
+                            }
+                            .buttonStyle(.bordered)
                         }
-                        .buttonStyle(.borderedProminent)
+                        .padding(.top, 4)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .padding()
 
                 } else if filtered.isEmpty {
-                    ContentUnavailableView(
-                        "該当する物件がありません",
-                        systemImage: "magnifyingglass",
-                        description: Text("検索条件や絞り込みを見直してください。")
-                    )
+                    // [変更] 0件時にもアクションを提示
+                    VStack(spacing: 12) {
+                        ContentUnavailableView(
+                            "該当する物件がありません",
+                            systemImage: "magnifyingglass",
+                            description: Text("検索条件や絞り込みを見直してください。")
+                        )
+                        HStack(spacing: 12) {
+                            Button {
+                                filter = PropertyFilter()             // [追加] 条件リセット
+                            } label: {
+                                Label("条件をリセット", systemImage: "xmark.circle")
+                            }
+                            .buttonStyle(.bordered)
+
+                            Button {
+                                isFilterPresented = true              // [追加] 絞り込みを開く
+                            } label: {
+                                Label("条件を調整", systemImage: "slider.horizontal.3")
+                            }
+                            .buttonStyle(.borderedProminent)
+                        }
+                    }
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    .padding()
 
                 } else {
                     List(filtered) { property in
                         NavigationLink(value: property) {
-                            PropertyRow(property: property)
+                            PropertyRow(property: property)           // [変更] 価格強調版を使用
                         }
-                        // 行のスワイプでお気に入りトグル
                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                             let isFav = favorites.isFavorite(property)
                             Button {
@@ -155,12 +189,8 @@ struct PropertyListView: View {
                         }
                     }
                     .listStyle(.plain)
-                    // ============================
-                    // [変更] プル・トゥ・リフレッシュを async 版に統一
-                    // 旧: .refreshable { await refresh() } / 旧: viewModel.load()
-                    // ============================
                     .refreshable {
-                        await viewModel.reload()
+                        await viewModel.reload()                      // [変更] 統一
                     }
                 }
             }
@@ -171,7 +201,20 @@ struct PropertyListView: View {
                 placement: .navigationBarDrawer(displayMode: .always),
                 prompt: "駅名・エリア・物件名"
             )
+            // [追加] ツールバーにも“並び替え”を置く（片手操作向け）
             .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        Picker("並び替え", selection: $filter.sort) {
+                            Text("家賃（安→高）").tag(PropertyFilter.Sort.rentAsc)
+                            Text("家賃（高→安）").tag(PropertyFilter.Sort.rentDesc)
+                            Text("徒歩（短→長）").tag(PropertyFilter.Sort.walkAsc)
+                            Text("徒歩（長→短）").tag(PropertyFilter.Sort.walkDesc)
+                        }
+                    } label: {
+                        Label("並び替え", systemImage: "arrow.up.arrow.down")
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         isFilterPresented.toggle()
@@ -195,26 +238,37 @@ struct PropertyListView: View {
             }
             .presentationDetents([.medium, .large])
         }
-        // ============================
-        // [変更] 初回ロードのみ実行（時刻は ViewModel 側が更新）
-        // ============================
         .task {
             if properties.isEmpty {
-                viewModel.load()
+                viewModel.load() // 初回ロード
             }
         }
     }
+}
 
-    // ============================
-    // [削除] 旧: refresh() は不要（ViewModel.reload() に統一）
-    // ============================
+// [追加] 小さな“チップ”UI（件数や並びを見やすく）
+private struct Chip: View {
+    let text: String
+    var systemImage: String? = nil
+    var body: some View {
+        HStack(spacing: 6) {
+            if let name = systemImage {
+                Image(systemName: name)
+            }
+            Text(text)
+                .font(.caption)
+                .lineLimit(1)
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(.secondary.opacity(0.15))
+        .clipShape(Capsule())
+    }
 }
 
 #Preview {
     struct PreviewRepo: PropertyRepository {
-        func fetchProperties() async throws -> [Property] {
-            MockProperties.sample
-        }
+        func fetchProperties() async throws -> [Property] { MockProperties.sample }
     }
     let vm = PropertyListViewModel(repository: PreviewRepo())
     return PropertyListView(viewModel: vm)
