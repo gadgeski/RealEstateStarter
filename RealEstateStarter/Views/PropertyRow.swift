@@ -11,52 +11,48 @@ struct PropertyRow: View {
     let property: Property
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            // 今回はSF Symbolsをサムネイル代わりに使用（画像アセット不要）
-            ZStack {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(.secondarySystemBackground))
-                    .frame(width: 64, height: 64)
-                Image(systemName: property.imageSystemName ?? "house")
-                    .font(.system(size: 28, weight: .semibold))
-            }
-            .accessibilityHidden(true)
+        HStack(spacing: 12) {
+            // [追加] アイコン（仮）— 画像未整備でも形になる
+            Image(systemName: property.imageSystemName ?? "house.fill")
+                .font(.title2)
+                .frame(width: 44, height: 44)
+                .background(.quaternary.opacity(0.2))
+                .clipShape(RoundedRectangle(cornerRadius: 10))
 
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 4) {
+                // タイトル
                 Text(property.title)
-                    .font(.headline)
-                    .lineLimit(2)
-
-                // 家賃表記（円）
-                Text(property.rent, format: .currency(code: "JPY"))
-                    .font(.title3).bold()
-
-                HStack(spacing: 8) {
-                    Label(property.layout, systemImage: "bed.double")
-                    Label("\(property.nearestStation) 徒歩\(property.walkMinutes)分", systemImage: "tram.fill")
-                }
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-
-                Text(property.area)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
                     .lineLimit(1)
+                    .accessibilityLabel("\(property.title)")
+
+                // [変更] 価格を太字＋モノスペースで視認性UP
+                Text(property.rent.formatted(.currency(code: "JPY")))
+                    .font(.title3)               // ← ここで大きめ
+                    .fontWeight(.bold)
+                    .monospacedDigit()           // ← 桁ブレ防止
+                    .accessibilityLabel("家賃 \(property.rent)円")
+
+                // レイアウト・徒歩・エリア
+                HStack(spacing: 8) {
+                    Label(property.layout, systemImage: "square.grid.2x2")
+                    Label("徒歩\(property.walkMinutes)分", systemImage: "figure.walk")
+                    Label(property.wardOrCity, systemImage: "mappin.and.ellipse")
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
             }
 
             Spacer()
-
-            Image(systemName: "chevron.right")
-                .foregroundStyle(.tertiary)
         }
-        .padding(.vertical, 8)
+        .contentShape(Rectangle())
+        .padding(.vertical, 6)
     }
 }
 
 #Preview {
-    List {
-        ForEach(MockProperties.sample) { p in
-            PropertyRow(property: p)
-        }
-    }
+    PropertyRow(property: MockProperties.sample.first!)
+        .padding()
 }
