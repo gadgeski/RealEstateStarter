@@ -25,6 +25,9 @@
 		DB4123EB2E7AA5E200761290 /* Exceptions for "RealEstateStarter" folder in "RealEstateStarter" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Configurations/Debug.xcconfig,
+				Configurations/Release.xcconfig,
+				Configurations/Shared.xcconfig,
 				Info.plist,
 			);
 			target = DB84576D2E6FDBD300EB5659 /* RealEstateStarter */;
@@ -35,11 +38,6 @@
 		DB4123ED2E7AD46300761290 /* doc */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = doc;
-			sourceTree = "<group>";
-		};
-		DB4123F62E7BED5F00761290 /* Tests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Tests;
 			sourceTree = "<group>";
 		};
 		DB41248A2E7BF87700761290 /* RealEstateStarterTests */ = {
@@ -78,7 +76,6 @@
 		DB8457652E6FDBD300EB5659 = {
 			isa = PBXGroup;
 			children = (
-				DB4123F62E7BED5F00761290 /* Tests */,
 				DB4123ED2E7AD46300761290 /* doc */,
 				DB8457702E6FDBD300EB5659 /* RealEstateStarter */,
 				DB41248A2E7BF87700761290 /* RealEstateStarterTests */,
@@ -135,7 +132,6 @@
 			);
 			fileSystemSynchronizedGroups = (
 				DB4123ED2E7AD46300761290 /* doc */,
-				DB4123F62E7BED5F00761290 /* Tests */,
 				DB8457702E6FDBD300EB5659 /* RealEstateStarter */,
 			);
 			name = RealEstateStarter;
@@ -153,7 +149,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1640;
-				LastUpgradeCheck = 1640;
+				LastUpgradeCheck = 2600;
 				TargetAttributes = {
 					DB4124882E7BF87700761290 = {
 						CreatedOnToolsVersion = 16.4;
@@ -304,6 +300,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = L6SXUP9G68;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -328,6 +325,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -369,6 +367,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = L6SXUP9G68;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -386,6 +385,7 @@
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 			};
 			name = Release;
@@ -400,9 +400,12 @@
 				CODE_SIGN_ENTITLEMENTS = RealEstateStarter/RealEstateStarter.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = L6SXUP9G68;
+				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = RealEstateStarter/Info.plist;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
@@ -442,9 +445,12 @@
 				CODE_SIGN_ENTITLEMENTS = RealEstateStarter/RealEstateStarter.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = L6SXUP9G68;
+				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = RealEstateStarter/Info.plist;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
