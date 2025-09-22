@@ -7,10 +7,10 @@
 
 // Repositories/DefaultPropertyRepository.swift
 import Foundation
+import CryptoKit   // [追加] 決定論的UUID生成に使用（iOS 13+）
 
 /// API を優先し、失敗時はローカルへフォールバックする Repository。
-/// 直デコード([Property])から DTO 経由のデコードに変更し、
-/// 不足値に安全なデフォルト／`wardOrCity` の推定を追加。
+/// DTO 経由のデコードに加え、IDの安定化・マッピングガードを強化。
 struct DefaultPropertyRepository: PropertyRepository {
     // 依存（DI）
     let baseURL: URL
@@ -21,23 +21,20 @@ struct DefaultPropertyRepository: PropertyRepository {
     private var decoder: JSONDecoder {
         let d = JSONDecoder()
         d.dateDecodingStrategy = .iso8601
-        d.keyDecodingStrategy = .convertFromSnakeCase // [追加] snake_case にも寛容
+        d.keyDecodingStrategy = .convertFromSnakeCase
         return d
     }
 
     // MARK: - Public
     func fetchProperties() async throws -> [Property] {
         do {
-            // [変更] DTO 経由でデコード（パス名は必要に応じて変更）
+            // [変更] DTO 経由でフェッチ
             var ep = Endpoint.get("properties")
             ep.headers["Accept"] = "application/json"
             var req = try ep.urlRequest(baseURL: baseURL)
-
-            // [追加] タイムアウト（AppConfig がある前提。無いならこの1行はコメントアウト可）
-            req.timeoutInterval = AppConfig.apiTimeoutSeconds
+            req.timeoutInterval = AppConfig.apiTimeoutSeconds  // [前提] AppConfig 導入済み
 
             let (data, response) = try await apiClient.data(for: req)
-
             guard let http = response as? HTTPURLResponse else {
                 throw NetworkError.invalidResponse
             }
@@ -45,11 +42,22 @@ struct DefaultPropertyRepository: PropertyRepository {
                 throw NetworkError.httpStatus(http.statusCode)
             }
 
-            // [変更] フレキシブルなトップレベルに対応して DTO を取得
+            // 1) DTO デコード（トップレベルの形に寛容）
             let dtos = try decodeDTOs(from: data)
 
-            // [変更] DTO → Domain へマッピング（不足値は安全なデフォルト）
+            // 2) DTO → Domain へ
             let mapped = dtos.compactMap { $0.toDomain() }
+
+            // 3) [追加] マッピング・ガード
+            //    「DTOは取れたのに 1件も Domain にできない」= 仕様ズレと判断 → デコード失敗扱いでフォールバック
+            if !dtos.isEmpty && mapped.isEmpty {
+                #if DEBUG
+                print("[DefaultPropertyRepository] Mapping guard triggered: \(dtos.count) DTOs → 0 mapped")
+                #endif
+                throw NetworkError.decoding(NSError(domain: "mapping", code: -1))
+            }
+
+            // 正常
             return mapped
         } catch {
             // [変更] 失敗時はローカルへフォールバック
@@ -62,36 +70,32 @@ struct DefaultPropertyRepository: PropertyRepository {
 
     // MARK: - Decode helpers
 
-    /// [追加] トップレベルが [DTO] / {data:[DTO]} / {properties:[DTO]} の3パターンに対応
+    /// トップレベルが [DTO] / {data:[DTO]} / {properties:[DTO]} の3パターンに対応
     private func decodeDTOs(from data: Data) throws -> [APIPropertyDTO] {
-        // 1) 素の配列
         if let arr = try? decoder.decode([APIPropertyDTO].self, from: data) {
             return arr
         }
-        // 2) { "data": [...] }
         if let wrapped = try? decoder.decode(APIListDataWrapper.self, from: data) {
             return wrapped.data
         }
-        // 3) { "properties": [...] }
         if let wrapped = try? decoder.decode(APIListPropertiesWrapper.self, from: data) {
             return wrapped.properties
         }
-        // 4) どれでもない → デコードエラー
         throw NetworkError.decoding(NSError(domain: "decode", code: -1))
     }
 }
 
-// MARK: - [追加] DTO とラッパ
+// MARK: - DTO とラッパ
 
-/// API の物件DTO（API差異に耐えるよう、複数別名を許容）
+/// API の物件DTO（暫定→確定移行期に備え、名称の揺れを一部許容）
 private struct APIPropertyDTO: Decodable {
-    // ID（文字列想定。数値が来るAPIなら later: カスタムデコードに差し替え）
+    // ID は文字列想定（数値や他形式でも文字列に載ってくることを想定）
     let id: String?
 
-    // 必須相当（title が無いものは toDomain() で捨てる）
+    // 必須相当
     let title: String?
 
-    // 家賃：別名に寛容
+    // 家賃（名称ゆらぎ）
     let rent: Int?
     let price: Int?
     let monthlyRent: Int?
@@ -101,24 +105,24 @@ private struct APIPropertyDTO: Decodable {
     let area: String?
     let nearestStation: String?
 
-    // 徒歩分数：別名に寛容
+    // 徒歩分数（名称ゆらぎ）
     let walkMinutes: Int?
     let walkMin: Int?
 
-    // 画像（無ければデフォルト）
+    // 画像
     let imageSystemName: String?
     let imageName: String?
 
-    // 位置情報（任意）
+    // 位置情報
     let latitude: Double?
     let longitude: Double?
 
-    // [追加] 市区町村系：API差異に対応（どれかが来ればOK）
+    // 市区町村候補（仕様確定前のゆらぎ吸収）
     let wardOrCity: String?
     let ward: String?
     let city: String?
     let municipality: String?
-    let prefecture: String? // 参考用（推定の補助）
+    let prefecture: String?
 
     private enum CodingKeys: String, CodingKey {
         case id, title, rent, price, monthlyRent, rentYen
@@ -126,82 +130,94 @@ private struct APIPropertyDTO: Decodable {
         case walkMinutes, walkMin
         case imageSystemName, imageName
         case latitude, longitude
-        case wardOrCity, ward, city, municipality, prefecture // [追加]
+        case wardOrCity, ward, city, municipality, prefecture
     }
 }
 
-/// { "data": [ ... ] }
 private struct APIListDataWrapper: Decodable {
     let data: [APIPropertyDTO]
 }
 
-/// { "properties": [ ... ] }
 private struct APIListPropertiesWrapper: Decodable {
     let properties: [APIPropertyDTO]
 }
 
-// MARK: - [追加] DTO → Domain 変換
+// MARK: - DTO → Domain 変換（ガード強化）
 
 private extension APIPropertyDTO {
-    /// 必須最低限: title が無ければ捨てる。その他は安全なデフォルトを適用。
     func toDomain() -> Property? {
-        // title が無ければ不可
-        guard let title = title?.trimmingCharacters(in: .whitespacesAndNewlines),
-              !title.isEmpty else {
-            return nil
-        }
+        // 必須: title
+        guard let rawTitle = title?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !rawTitle.isEmpty else { return nil }
 
-        // 家賃：候補のうち最初に見つかったもの。無ければ 0。
-        let rentValue = rent ?? price ?? monthlyRent ?? rentYen ?? 0
+        // 家賃：異常値ガード（負値→0）
+        let rawRent = rent ?? price ?? monthlyRent ?? rentYen ?? 0
+        let rentValue = max(0, rawRent) // [追加] 0未満は0へ
 
-        // 徒歩分数：無ければ 0
-        let walk = walkMinutes ?? walkMin ?? 0
+        // 徒歩分数：異常値は0に丸め
+        let walkValue = max(0, walkMinutes ?? walkMin ?? 0)
 
         // 画像：無ければ house.fill
         let image = imageSystemName ?? imageName ?? "house.fill"
 
-        // UUID：String を優先。変換不可なら新規生成。
-        let uuid: UUID = {
-            if let id, let u = UUID(uuidString: id) { return u }
-            return UUID()
-        }()
-
-        // 表示安全なデフォルト
+        // 表示用デフォルト
         let layoutValue = (layout?.isEmpty == false) ? layout! : "1K"
         let areaValue = (area?.isEmpty == false) ? area! : "—"
         let stationValue = (nearestStation?.isEmpty == false) ? nearestStation! : "—"
 
-        // [追加] wardOrCity を DTO から or area から推定
+        // 市区町村の決定（DTO→推定の順）
         let wardOrCityValue: String = {
-            // 1) 明示キーがあればそれを使う
             if let s = wardOrCity, !s.isEmpty { return s }
             if let s = ward, !s.isEmpty { return s }
             if let s = city, !s.isEmpty { return s }
             if let s = municipality, !s.isEmpty { return s }
-            // 2) area から簡易抽出（「渋谷区」「世田谷区」「横浜市」など）
-            //    area が「東京都 渋谷区 恵比寿…」のような場合、空白で分割して
-            //    「〜区」「〜市」「〜町」「〜村」で終わる最初のトークンを採用
+            // area から簡易抽出（「〜区」「〜市」「〜町」「〜村」）
             let tokens = areaValue.split { $0 == " " || $0 == "　" }
             if let token = tokens.first(where: { $0.hasSuffix("区") || $0.hasSuffix("市") || $0.hasSuffix("町") || $0.hasSuffix("村") }) {
                 return String(token)
             }
-            // 3) 何も拾えなければ area をそのまま（"—" になることもあり得る）
             return areaValue
         }()
 
-        // Domain へ
+        // [変更] ID の安定化：
+        // - APIがUUID文字列ならそれを優先
+        // - UUIDでない/空なら、「安定種」から決定論的UUIDを生成（ハッシュ）
+        let uuid: UUID = {
+            if let s = id?.trimmingCharacters(in: .whitespacesAndNewlines), !s.isEmpty {
+                if let asUUID = UUID(uuidString: s) { return asUUID }
+                // UUIDでなくても、APIのid文字列が安定していれば安定UUIDへ変換
+                return Self.deterministicUUID(from: "id:\(s)")
+            } else {
+                // 文字列IDすら無ければ、物件の特徴から安定UUIDを生成
+                let seed = "title:\(rawTitle)|area:\(areaValue)|station:\(stationValue)|ward:\(wardOrCityValue)|layout:\(layoutValue)|rent:\(rentValue)"
+                return Self.deterministicUUID(from: seed)
+            }
+        }()
+
         return Property(
             id: uuid,
-            title: title,
+            title: rawTitle,
             rent: rentValue,
             layout: layoutValue,
             area: areaValue,
-            wardOrCity: wardOrCityValue,        // [追加] 必須引数を渡す
+            wardOrCity: wardOrCityValue,
             nearestStation: stationValue,
-            walkMinutes: walk,
+            walkMinutes: walkValue,
             imageSystemName: image,
             latitude: latitude,
             longitude: longitude
         )
+    }
+
+    // [追加] 文字列から決定論的にUUIDを生成（SHA256の先頭16バイトを使用）
+    private static func deterministicUUID(from string: String) -> UUID {
+        let digest = SHA256.hash(data: Data(string.utf8))
+        var bytes = Array(digest) // 32 bytes
+        // RFC準拠の体裁を整える（version=4 / variant=RFC4122 っぽく）
+        bytes[6] = (bytes[6] & 0x0F) | 0x40
+        bytes[8] = (bytes[8] & 0x3F) | 0x80
+        let a = Array(bytes[0..<16])
+        // UUID(uuid:) は16バイトのタプルが必要
+        return UUID(uuid: (a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9], a[10], a[11], a[12], a[13], a[14], a[15]))
     }
 }
